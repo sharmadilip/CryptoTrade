@@ -21,7 +21,7 @@ class BitbnsApi
     //--------------end keys--------------------
     public function __construct()
     {
-        $this->public_key=env('BITBNS_KEY_PUBLIC',"");
+        $this->public_key=env('BITBNS_KEY_PUBLIC'," ");
         $this->secrete_key=env('BITBNS_KEY_SECRET',"");
         $this->binance_pulic_key=env('BINANCE_KEY_PUBLIC');
         $this->binance_secrate_key=env('BINANCE_KEY_SECRET');
