@@ -892,6 +892,7 @@ class CryptoTrade
            self::alert_telegram_chat("$symbol  price is  lower rate then exchange rate: ".$bitbns_tiker['lowest_sell_bid']);
        }
    }
+   //-----------bear strategy--------------
    function bear_strategy($per_change,$trade_setting,$symbol,$bitbns_tiker,$binace_price)
    {
        $max_qt=$trade_setting->slot_value;
