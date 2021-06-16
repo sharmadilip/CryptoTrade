@@ -278,7 +278,8 @@ class HomeController extends Controller
 
     }
 
-//----------function running on every 5 minutes--------------------------------------
+
+//----------function running on every 5 minutes new function--------------------------------------
     function run_on_every_five_minute()
     {
         $this->crypto_trad->sys_order_status();
