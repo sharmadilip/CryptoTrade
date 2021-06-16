@@ -569,7 +569,7 @@ class CryptoTrade
         $formatted_date = round(Carbon::now()->subMinutes(5)->timestamp* 1000.0);
         $current_time=round(Carbon::now()->timestamp* 1000.0);
         $binance=$this->Bitbns_api->get_binance_api();
-        $get_candel=  $binance->candlesticks($symbol."USDT", "15m",1,$formatted_date,$current_time);
+        $get_candel=  $binance->candlesticks($symbol."USDT", "5m",1,$formatted_date,$current_time);
         $data_array=array();
 
         foreach ($get_candel as $key=> $data)
