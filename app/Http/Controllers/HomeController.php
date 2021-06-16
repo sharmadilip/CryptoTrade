@@ -219,7 +219,7 @@ class HomeController extends Controller
         $bitbns_tiker=$this->crypto_trad->get_trade_price();
         //-------------bitcoin value from binance---------------------------------------
         $bitcoin_price=round($this->crypto_trad->get_coin_value_binance("BTC",$usd_rate),5);
-        $percent_change_bitcoin=$this->crypto_trad->get_price_change_in_five("BTC",$bitcoin_price,$usd_rate);
+        $percent_change_bitcoin=$this->crypto_trad->get_price_change_in_15("BTC",$bitcoin_price,$usd_rate);
         //-------------------------------get setting value------------------------------------
         $btc_up=$this->crypto_trad->get_setting_value('BTC_UP');
         $btc_down=$this->crypto_trad->get_setting_value('BTC_DOWN');
