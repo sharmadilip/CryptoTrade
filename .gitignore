@@ -1,11 +1,12 @@
 /node_modules
 /public/hot
-/storage
-/storage/*.key
+/storage/json/*.json
+/storage/json/price.json
+ storage/
 /vendor
 .env
 .env.backup
-.htaceess
+.htaccess
 .styleci.yml
 .gitignore
 .phpunit.result.cache
