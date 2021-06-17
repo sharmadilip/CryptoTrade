@@ -5,6 +5,9 @@
 /vendor
 .env
 .env.backup
+.htaceess
+.styleci.yml
+.gitignore
 .phpunit.result.cache
 docker-compose.override.yml
 Homestead.json
