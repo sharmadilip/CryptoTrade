@@ -585,7 +585,30 @@ class CryptoTrade
 
         return $percent_change_pos;
     }
+     /* Getiing btc value in 15 minutes from binance exchange */
+    function get_price_change_in_15($symbol, $current_price, $usd_rate)
+    {
 
+        $usd_rate=round($usd_rate,2);
+        $formatted_date = round(Carbon::now()->subMinutes(15)->timestamp* 1000.0);
+        $current_time=round(Carbon::now()->timestamp* 1000.0);
+        $binance=$this->Bitbns_api->get_binance_api();
+        $get_candel=  $binance->candlesticks($symbol."USDT", "15m",1,$formatted_date,$current_time);
+        $data_array=array();
+
+        foreach ($get_candel as $key=> $data)
+        {
+            $data_array[]=$data['open'];
+        }
+        if(!empty($data_array)) {
+            $percent_change_pos = self::get_percentage_change($current_price, $data_array[0]);
+        }
+        else{
+            $percent_change_pos=0;
+        }
+
+        return $percent_change_pos;
+    }
     /**
      * @note Get price changes in every 5 minutes
      * @param $symbol
@@ -892,6 +915,7 @@ class CryptoTrade
            self::alert_telegram_chat("$symbol  price is  lower rate then exchange rate: ".$bitbns_tiker['lowest_sell_bid']);
        }
    }
+
    //-----------bear strategy--------------
    function bear_strategy($per_change,$trade_setting,$symbol,$bitbns_tiker,$binace_price)
    {
