@@ -585,6 +585,7 @@ class CryptoTrade
 
         return $percent_change_pos;
     }
+     /* Getiing btc value in 15 minutes from binance exchange */
     function get_price_change_in_15($symbol, $current_price, $usd_rate)
     {
 
