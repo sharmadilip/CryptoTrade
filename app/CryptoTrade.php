@@ -186,8 +186,37 @@ class CryptoTrade
         }
         return $order_data['id'];
     }
+//-------------validate this order should less then in term % to last order------------------
+    function last_order_price_validation($current_price,$percentage_change,$order_type)
+    {
+        $trade_coin=self::get_setting_value("trade_coin");
+        $strategy=self::get_setting_value("strategy_value");
+        $get_price=DB::table('order_table')->select("price")->where(array('strategy'=>$strategy,'coin'=>$trade_coin,"order_type"=>$order_type))->orderBy('id',"desc")->first();
+        if(isset($get_price))
+        {
+            $current_change=self::get_percentage_change($current_price,$get_price->price);
+            if($strategy==2||$strategy==0)
+            {
+                if (round($current_change) < round($percentage_change)) {
+                    return "true";
+                } else {
+                    return "false";
+                }
+            }
+            else {
+                if (round($current_change) > round($percentage_change)) {
+                    return "true";
+                } else {
+                    return "false";
+                }
+            }
+        }
+        else{
+            return "true";
+        }
 
 
+    }
 
 
     /**
@@ -215,7 +244,7 @@ class CryptoTrade
             $changePercent=((floatval($current_price[$symbol])-floatval($previous_price[$symbol]))/floatval($previous_price[$symbol]))*100;
             $chnage_percentage=self::get_setting_value('change_two_hours');
             //------------25% deinfe for not order again in 2 hr---------------
-            if($changePercent > floatval($chnage_percentage->setting_value))
+            if($changePercent > floatval($chnage_percentage))
             {
                 $status=false;
             }
@@ -868,7 +897,8 @@ class CryptoTrade
        {   //---------------placing the bid not purchaing according to the function---
            $purchase_price=$bitbns_tiker['highest_buy_bid']+$trade_setting->add_value;
            $status_bid=self::check_bid_already_exist($symbol,$purchase_price,0);
-           if($status_bid==false)
+           $price_stats=self::last_order_price_validation($purchase_price,$buy_diff,0);
+           if($status_bid==false&&$price_stats=="true")
            {   $body['quantity']=$max_qt;
                $body['rate']=$purchase_price;
                $inr_blance=DB::table('coin_blance')->select("quantity")->where("coin_name","Money")->first();
@@ -921,7 +951,8 @@ class CryptoTrade
        {   //---------------placing the bid not purchaing according to the function---
            $purchase_price=$bitbns_tiker['highest_buy_bid']+$trade_setting->add_value;
            $status_bid=self::check_bid_already_exist($symbol,$purchase_price,0);
-           if($status_bid==false)
+           $price_stats=self::last_order_price_validation($purchase_price,$buy_diff,0);
+           if($status_bid==false&&$price_stats=="true")
            {   $body['quantity']=$max_qt;
                $body['rate']=$purchase_price;
                $inr_blance=DB::table('coin_blance')->select("quantity")->where("coin_name","Money")->first();
@@ -972,7 +1003,8 @@ class CryptoTrade
        {
            $purchase_price=$bitbns_tiker['highest_buy_bid']+$trade_setting->add_value;
            $status_bid=self::check_bid_already_exist($symbol,$purchase_price,0);
-           if($status_bid==false)
+           $price_stats=self::last_order_price_validation($purchase_price,$buy_diff,0);
+           if($status_bid==false&&$price_stats=="true")
            {   $body['quantity']=$max_qt;
                $body['rate']=$purchase_price;
                $inr_blance=DB::table('coin_blance')->select("quantity")->where("coin_name","Money")->first();
