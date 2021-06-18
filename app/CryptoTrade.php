@@ -729,15 +729,14 @@ class CryptoTrade
    function to_run_kill_previos_node_hook()
    {
        exec('ps -ef | grep get_price.js',$grep_data,$result);
-      print_r($grep_data);
+       print_r($grep_data);
        foreach ($grep_data as $key=>$p_data)
        {
 
            $my_data=explode('  ',trim(str_replace('daemon','',$p_data),"  "),2);
            $pid= (int) filter_var($my_data[0], FILTER_SANITIZE_NUMBER_INT);
-         //  $pid=substr($matches, 0, 5);
-           echo $cmd="kill $pid";
-         exec($cmd,$rs,$post);
+           $cmd="kill $pid";
+           exec($cmd,$rs,$post);
 
        }
        shell_exec('nohup node get_price.js >/dev/null 2>&1 &');

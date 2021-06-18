@@ -31,9 +31,8 @@ class SettingsValue extends Controller
         {
             DB::table("system_settings")->updateOrInsert(array("setting_key"=>$key),array("setting_key"=>$key,"setting_value"=>$value,"created_at"=>Carbon::now()->toDateTimeString(),"updated_at"=>Carbon::now()->toDateTimeString()));
         }
-        //------run node js again-----------------
-        $trade=new CryptoTrade();
-        $trade->to_run_kill_previos_node_hook();
+        $crypo_aip=new CryptoTrade();
+        $crypo_aip->to_run_kill_previos_node_hook();
         return back()->withStatus(__('Setting successfully Updated.'));
     }
     public function addSetting(Request $request)
