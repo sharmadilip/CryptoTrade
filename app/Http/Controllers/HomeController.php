@@ -205,6 +205,10 @@ class HomeController extends Controller
         {
             $this->crypto_trad->bear_strategy($per_change, $trade_setting, $symbol, $bitbns_tiker, $binace_price);
         }
+        else if($stratgey==2)
+        {
+            $this->crypto_trad->percentage_strategy($per_change, $trade_setting, $symbol, $bitbns_tiker, $binace_price);
+        }
         return $return_data_array;
 
     }

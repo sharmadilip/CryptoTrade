@@ -859,8 +859,56 @@ class CryptoTrade
     /**
      *
      */
-    function percentage_strategy()
-   {
+    function percentage_strategy($per_change,$trade_setting,$symbol,$bitbns_tiker,$binace_price)
+   {   $max_qt=$trade_setting->slot_value;
+       //-------percentage stratgey-------------------------
+       $buy_diff="-0.5";
+       $sell_dif="1";
+       //---------------End Parameter------------------
+       if(round($per_change,3) < $buy_diff &&$bitbns_tiker['highest_buy_bid'] > $binace_price)
+       {   //---------------placing the bid not purchaing according to the function---
+           $purchase_price=$bitbns_tiker['highest_buy_bid']+$trade_setting->add_value;
+           $status_bid=self::check_bid_already_exist($symbol,$purchase_price,0);
+           if($status_bid==false)
+           {   $body['quantity']=$max_qt;
+               $body['rate']=$purchase_price;
+               $inr_blance=DB::table('coin_blance')->select("quantity")->where("coin_name","Money")->first();
+               if($inr_blance->quantity > $max_qt*$purchase_price ) {
+                   self::create_buy_order_bitbns($symbol, $body);
+
+               }
+               else{
+                   Log::emergency("Money has finished");
+               }
+           }
+           Log::emergency("coin order has placed successfully");
+       }
+       //-------------------------End place order && start sale order---------------------------------------
+       else if( round($per_change,3) > $sell_dif &&$bitbns_tiker['highest_buy_bid'] > $binace_price)
+       {   //---------------placing the bid not purchaing according to the function---
+           $sell_price=$bitbns_tiker['lowest_sell_bid']-$trade_setting->add_value;
+
+           $status_bid=self::check_bid_already_exist($symbol,$sell_price,1);
+           if($status_bid==false)
+           {
+               $coin_blance=DB::table('coin_blance')->select("quantity")->where("coin_name",$symbol)->first();
+               if($coin_blance->quantity > 0) {
+                   $body['quantity'] = $trade_setting->slot_value;
+                   $body['rate'] = $sell_price;
+
+                   self::create_sell_order_bitbns($symbol, $body);
+               }
+               else{
+                   Log::emergency("All Coin Has been sold");
+               }
+           }
+           Log::emergency("coin sell order has placed successfully");
+       }
+       //-------------------binance price lower block-----------------------
+       else if($binace_price > $bitbns_tiker['lowest_sell_bid'])
+       {   self::buy_trade_coin_current();
+           self::alert_telegram_chat("$symbol  price is  lower rate then exchange rate: ".$bitbns_tiker['lowest_sell_bid']);
+       }
 
    }
    function grid_Strategy_or_stable()
