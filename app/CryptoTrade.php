@@ -899,7 +899,8 @@ class CryptoTrade
      *
      */
     function sell_trade_coin_current()
-{   $symbol =self::get_setting_value('trade_coin');
+{
+    $symbol =self::get_setting_value('trade_coin');
     $get_trade=self::get_trade_price();
     $sell_price=$get_trade['highest_buy_bid'];
     $trade_setting=DB::table("coin_setting")->select("*")->where("coin_name",$symbol)->first();
@@ -937,7 +938,7 @@ class CryptoTrade
        //---------------End Parameter------------------
        if(round($per_change,3) < $buy_diff &&$bitbns_tiker['highest_buy_bid'] > $binace_price)
        {   //---------------placing the bid not purchaing according to the function---
-           $purchase_price=$bitbns_tiker['highest_buy_bid'];
+           $purchase_price=$bitbns_tiker['lowest_sell_bid'];
            $coin_value=DB::table("coin_blance")->select("quantity")->where("coin_name","=",$symbol)->first();
            if(isset($coin_value->quantity)&&$coin_value->quantity >= $max_qt) {
                 $price_stats = self::last_order_price_validation($purchase_price, $buy_diff, 0);
@@ -953,6 +954,7 @@ class CryptoTrade
                if($inr_blance->quantity > $max_qt*$purchase_price ) {
 
                    self::create_buy_order_bitbns($symbol, $body);
+                   self::update_coin_balance();
                    Log::emergency("coin order has placed successfully");
                }
                else{
@@ -965,7 +967,7 @@ class CryptoTrade
        //-------------------------End place order && start sale order---------------------------------------
        else if( round($per_change,3) > $sell_dif &&$bitbns_tiker['highest_buy_bid'] > $binace_price)
        {   //---------------placing the bid not purchaing according to the function---
-           $sell_price=$bitbns_tiker['lowest_sell_bid'];
+           $sell_price=$bitbns_tiker['highest_buy_bid'];
            $sell_status=self::last_order_price_sell_validation($sell_price,$sell_dif,1);
 
            if($sell_status=="true")
@@ -977,6 +979,7 @@ class CryptoTrade
                    $body['rate'] = $sell_price;
 
                    self::create_sell_order_bitbns($symbol, $body);
+                   self::update_coin_balance();
                    Log::emergency("coin sell order has placed successfully");
                }
                else{
@@ -992,10 +995,12 @@ class CryptoTrade
        }
 
    }
+   //---------------% strategy end------------------------------------
    function grid_Strategy_or_stable()
    {
 
    }
+   //----------------bulish strategy data changes----------------------------
    function bullish_strategy($per_change,$trade_setting,$symbol,$bitbns_tiker,$binace_price)
    {   $max_qt=$trade_setting->slot_value;
        $buy_diff=$trade_setting->buy_deff;
@@ -1055,7 +1060,7 @@ class CryptoTrade
        }
    }
 
-   //-----------bear strategy--------------
+   //---------------bear strategy-----------------------------------------
    function bear_strategy($per_change,$trade_setting,$symbol,$bitbns_tiker,$binace_price)
    {
        $max_qt=$trade_setting->slot_value;

@@ -298,6 +298,7 @@ class HomeController extends Controller
         $this->crypto_trad->sys_order_book_by_coin();
         $this->crypto_trad->clear_old_price_data_entries();
         $this->crypto_trad->check_all_commands();
+        self::set_stratgey_based_on_data_change();
     }
 //-----------run in every 2 run-----------------
     function run_every_two_minutes()
@@ -321,6 +322,35 @@ class HomeController extends Controller
       $this->crypto_trad->update_usd_to_db();
       return "true";
   }
+
+  function set_stratgey_based_on_data_change()
+  {
+     $symbol=$this->crypto_trad->get_setting_value("trade_coin");
+
+      //$bitbns_tiker=$this->crypto_trad->get_trade_price();
+      $last_change=$this->crypto_trad->get_price_change_minutes_db($symbol,'720');
+      $last_price=$last_change[count($last_change)-1];
+      $per_change=$this->crypto_trad->get_percentage_change($last_change[0],$last_price);
+      //-----------less then 4 and greater then -4------------
+      if($per_change < 4&&$per_change > -4)
+      {     //--------------update percentage trading---------------------
+             $this->crypto_trad->update_setting_value('strategy_value',2);
+      }
+      //--------greater then 10------------
+      else if($per_change > 15)
+      {
+      //--------------update brear trading---------------------
+          $this->crypto_trad->update_setting_value('strategy_value',0);
+      }
+      //--------less then -10------------
+      else if($per_change < -15)
+      {
+          //--------------update bullish trading---------------------
+          $this->crypto_trad->update_setting_value('strategy_value',1);
+      }
+  }
+
+
 
   function run_all_bot_alog()
   {
