@@ -22,7 +22,7 @@ class WebSocket extends Command
      */
     protected $description = 'Command get Data by cron';
     protected $btc_price=array();
-    protected $crypto_trade;
+
 
     /**
      * Create a new command instance.
@@ -32,7 +32,7 @@ class WebSocket extends Command
     public function __construct()
     {
         parent::__construct();
-        $crypto_trade= new CryptoTrade();
+
     }
 
     /**
@@ -41,9 +41,9 @@ class WebSocket extends Command
      * @return int
      */
     public function handle()
-    {   $api_trade=$this->crypto_trade;
-        $binace_api=$this->crypto_trade->Bitbns_api->get_binance_api();
-        $trade_coin=$this->crypto_trade->get_setting_value('trade_coin');
+    {   $api_trade=new CryptoTrade();;
+        $binace_api=$api_trade->Bitbns_api->get_binance_api();
+        $trade_coin=$api_trade->get_setting_value('trade_coin');
         $symbol=$trade_coin."BUSD";
         $binace_api->trades([$symbol], function($api, $symbol, $trades) use($api_trade) {
 
