@@ -228,32 +228,22 @@ public function get_strategy($key)
     {
         $trade_coin=self::get_setting_value("trade_coin");
         $strategy=self::get_setting_value("strategy_value");
-        $get_price=DB::table('order_table')->select("price")->where(array('strategy'=>$strategy,'coin'=>$trade_coin,'order_status'=>2,"order_type"=>$order_type))->orderBy('id',"desc")->first();
-        if(isset($get_price))
+        $coin_blance=DB::table("coin_blance")->select('quantity')->where('coin_name',$trade_coin)->first();
+        $coin_slot=DB::table("coin_setting")->select('slot_value')->where('coin_name',$trade_coin)->first();
+        $row_limit=round($coin_blance/$coin_slot);
+        $get_price_data=DB::table('order_table')->select("price")->where(array('strategy'=>$strategy,'coin'=>$trade_coin,'order_status'=>2,"order_type"=>$order_type))->orderBy('id',"desc")->limit($row_limit)->get();
+         $status="false";
+        foreach($get_price_data as $get_price)
         {
             $current_change=self::get_percentage_change($current_price,$get_price->price);
-            //echo $current_change."--".$percentage_change;
-            if($strategy==2||$strategy==0)
+            if($current_change >= $percentage_change&&$current_price > $get_price->price)
             {
-                if (round($current_change) > round($percentage_change)) {
-                    return "true";
-                } else {
-                    return "false";
-                }
+                $status="true";
             }
-            else {
-                if (round($current_change) < round($percentage_change)) {
-                    return "true";
-                } else {
-                    return "false";
-                }
-            }
-        }
-        else{
-            return "true";
-        }
+            //echo $current_change."--".$percentage_change;
 
-
+        }
+        return $status;
     }
     /**
      * @note Check should place order again or not(Main conditinal Logic is here )
@@ -309,6 +299,7 @@ public function get_strategy($key)
                 DB::table("order_table")->insert(array("order_id" => $order_id, "quantity" => $quantity, "price" => $rate, "coin" => $symbol, "order_status" => 0, "order_type" => 1, "created_at" => Carbon::now()->toDateTimeString(), "updated_at" => Carbon::now()->toDateTimeString()));
                 self::update_coin_balance();
                 self::alert_telegram_chat("A sell order of $symbol Quantity:- $quantity at:-$rate has created");
+                return $order_data['id'];
             } else {
                 Log::error("Error in order Place:-" . json_encode($order_data));
 
@@ -317,7 +308,7 @@ public function get_strategy($key)
         else{
             Log::notice("already sell done");
         }
-        return $order_data['id'];
+        return false;
     }
 
 
