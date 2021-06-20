@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use App\CryptoTrade;
+
 class SettingsValue extends Controller
 {
     public function edit()
@@ -21,6 +22,7 @@ class SettingsValue extends Controller
      * @param  \App\Http\Requests\ProfileRequest  $request
      * @return \Illuminate\Http\RedirectResponse
      */
+
     public function update(Request $request)
     {
         $data=$request->all();
@@ -31,8 +33,8 @@ class SettingsValue extends Controller
         {
             DB::table("system_settings")->updateOrInsert(array("setting_key"=>$key),array("setting_key"=>$key,"setting_value"=>$value,"created_at"=>Carbon::now()->toDateTimeString(),"updated_at"=>Carbon::now()->toDateTimeString()));
         }
-        $crypo_aip=new CryptoTrade();
-        $crypo_aip->to_run_kill_previos_node_hook();
+        $trade_api=new CryptoTrade();
+        $trade_api->to_run_kill_previos_node_hook();
         return back()->withStatus(__('Setting successfully Updated.'));
     }
     public function addSetting(Request $request)

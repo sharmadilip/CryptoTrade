@@ -70,7 +70,7 @@
 </script>
         <script src="{{ asset('black') }}/js/black-dashboard.min.js?v=1.0.0"></script>
         <script src="{{ asset('black') }}/js/theme.js"></script>
-        <script src="public/js/app.js"></script>
+
 
         @stack('js')
         <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
@@ -85,6 +85,7 @@
                     var inr_amount=0;
                     var buy_price=0;
                     var sell_price=0;
+                    var current_interval;
 
                     //----------------------buy sale js form ----------------------------------
                     $("#coin_trade_form #symbol").on("change",function (){
@@ -94,7 +95,8 @@
                         $.post("{{route("change_coin_trade_price")}}", {"_token":token,"symbol":symbol}, function (responce) {
                         });
                         get_coins_trade_data(symbol);
-
+                        clearInterval(current_interval);
+                        current_interval= read_js_price_values(symbol);
                     });
 
                     function get_coins_trade_data(symbol)
@@ -278,6 +280,18 @@
                              }
 
                         });
+
+
+                    }
+                    function read_js_price_values(symbol)
+                    {  var intervel_count=0;
+                       var my_intervel= setInterval(  function(){  $.getJSON( 'storage/json/'+symbol+'_price.json?count='+intervel_count, function(responce) {
+                            var data =JSON.parse(JSON.stringify(responce));
+                     $("#alert_content_action_tr").html('<td>'+symbol+'</td><td>'+data['highest_buy_bid']+'</td><td>'+data['lowest_sell_bid']+'</td>');
+                                intervel_count=  intervel_count+1;
+                        })},10000
+                     );
+                       return my_intervel;
                     }
                    $("#reload_data_buy_sell").on("click",function (){
                        if(symbol!='') {

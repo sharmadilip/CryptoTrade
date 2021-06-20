@@ -192,7 +192,7 @@ class CryptoTrade
     {
         $trade_coin=self::get_setting_value("trade_coin");
         $strategy=self::get_setting_value("strategy_value");
-        $get_price=DB::table('order_table')->select("price")->where(array('strategy'=>$strategy,'coin'=>$trade_coin,"order_type"=>$order_type))->orderBy('id',"desc")->first();
+        $get_price=DB::table('order_table')->select("price")->where(array('strategy'=>$strategy,'coin'=>$trade_coin,'order_status'=>2,"order_type"=>$order_type))->orderBy('id',"desc")->first();
         if(isset($get_price))
         {
             $current_change=self::get_percentage_change($current_price,$get_price->price);
@@ -263,12 +263,11 @@ class CryptoTrade
         $minute_minute=Carbon::now()->subMinutes($order_again_time)->toDateTimeString();
         $hourly_change=Carbon::now()->subHour($determine_hourly_up)->toDateTimeString();
         $status=true;
-        //-------------------old data-----------------------------------------
+        //-------------------old data order status 2 successfull order-----------------------------------------
         $order_data=DB::table("order_table")->select('order_id')->where('created_at',">=",$minute_minute)->where(array("coin"=>$symbol,"order_type"=>$type,"order_status"=>2))->orderBy('id',"desc")->first();
 
         if(isset($order_data->order_id))
         {$status=false;}
-
         if($status==true) {
             $hourly_data = DB::table("price_data")->select('data_json')->where('created_at', "<", $hourly_change)->orderBy('id', "desc")->first();
             $current_data = DB::table("price_data")->select('data_json')->orderBy('id', "desc")->first();
@@ -386,7 +385,6 @@ class CryptoTrade
             { if($status=="-1"){
                 $status=1;
             }
-
 
                 DB::table('order_table')->where('order_id',$my_order->order_id)->update(array('order_status'=>$status));
             }
@@ -933,7 +931,7 @@ class CryptoTrade
     function percentage_strategy($per_change,$trade_setting,$symbol,$bitbns_tiker,$binace_price)
    {   $max_qt=$trade_setting->slot_value;
        //-------percentage stratgey-------------------------
-       $buy_diff="-0.5";
+       $buy_diff="-1";
        $sell_dif="1";
        //---------------End Parameter------------------
        if(round($per_change,3) < $buy_diff &&$bitbns_tiker['highest_buy_bid'] > $binace_price)
@@ -955,6 +953,7 @@ class CryptoTrade
 
                    self::create_buy_order_bitbns($symbol, $body);
                    self::update_coin_balance();
+                   self::sys_order_status();
                    Log::emergency("coin order has placed successfully");
                }
                else{
@@ -980,6 +979,7 @@ class CryptoTrade
 
                    self::create_sell_order_bitbns($symbol, $body);
                    self::update_coin_balance();
+                   self::sys_order_status();
                    Log::emergency("coin sell order has placed successfully");
                }
                else{
@@ -1022,6 +1022,8 @@ class CryptoTrade
                $inr_blance=DB::table('coin_blance')->select("quantity")->where("coin_name","Money")->first();
                if($inr_blance->quantity > $max_qt*$purchase_price ) {
                    self::create_buy_order_bitbns($symbol, $body);
+                   self::update_coin_balance();
+                   self::sys_order_status();
                    Log::emergency("coin order has placed successfully");
                }
                else{
@@ -1045,6 +1047,8 @@ class CryptoTrade
                    $body['rate'] = $sell_price;
 
                    self::create_sell_order_bitbns($symbol, $body);
+                   self::update_coin_balance();
+                   self::sys_order_status();
                    Log::emergency("coin sell order has placed successfully");
                }
                else{
@@ -1082,6 +1086,8 @@ class CryptoTrade
                $inr_blance=DB::table('coin_blance')->select("quantity")->where("coin_name","Money")->first();
                if($inr_blance->quantity > $max_qt*$purchase_price ) {
                    self::create_buy_order_bitbns($symbol, $body);
+                   self::update_coin_balance();
+                   self::sys_order_status();
                    Log::emergency("coin order has placed successfully");
                }
                else{
@@ -1103,8 +1109,9 @@ class CryptoTrade
                if(isset($coin_blance->quantity)&&$coin_blance->quantity > 0) {
                    $body['quantity'] = $trade_setting->slot_value;
                    $body['rate'] = $sell_price;
-
                    self::create_sell_order_bitbns($symbol, $body);
+                   self::update_coin_balance();
+                   self::sys_order_status();
                }
                else{
                    Log::emergency("All Coin Has been sold");
