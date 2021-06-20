@@ -16,11 +16,12 @@ class CreateOrderTable extends Migration
         Schema::create('order_table', function (Blueprint $table) {
             $table->id();
             $table->integer('order_id');
-            $table->float('quantity');
-            $table->float('price');
+            $table->text('quantity');
+            $table->text('price');
             $table->string('coin');
             $table->integer('order_status')->comment("0 for not complete 1 for complete");
             $table->integer('order_type')->comment("0 for buy 1 for sell");
+            $table->string('strategy');
             $table->timestamps();
         });
     }

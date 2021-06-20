@@ -15,6 +15,7 @@ class SystemSettings extends Migration
     {
         Schema::create('system_settings', function (Blueprint $table) {
             $table->id();
+            $table->string('setting_label');
             $table->string('setting_key');
             $table->text('setting_value');
             $table->timestamps();

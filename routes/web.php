@@ -23,8 +23,11 @@ Route::get('/home', 'App\Http\Controllers\HomeController@index')->name('home')->
 
 Route::group(['middleware' => 'auth'], function () {
     Route::get('/',  'App\Http\Controllers\HomeController@index');
-		Route::get('coins', ['as' => 'pages.coins', 'uses' => 'App\Http\Controllers\CoinController@index']);
-       Route::get('coins/add', ['as' => 'coins.add', 'uses' => 'App\Http\Controllers\CoinController@add']);
+		Route::get('strategy', ['as' => 'pages.strategy', 'uses' => 'App\Http\Controllers\StrategyController@index']);
+       Route::get('strategy/add', ['as' => 'strategy.add', 'uses' => 'App\Http\Controllers\StrategyController@add']);
+    Route::post('strategy/save', ['as' => 'strategy.save', 'uses' => 'App\Http\Controllers\StrategyController@save']);
+    Route::get('coins', ['as' => 'pages.coins', 'uses' => 'App\Http\Controllers\CoinController@index']);
+    Route::get('coins/add', ['as' => 'coins.add', 'uses' => 'App\Http\Controllers\CoinController@add']);
     Route::get('orderbook', ['as' => 'coins.orderbook', 'uses' => 'App\Http\Controllers\CoinController@coin_order_book']);
 		Route::get('settings', ['as' => 'pages.settings', 'uses' => 'App\Http\Controllers\SettingsValue@edit']);
     Route::get('buysellpage', ['as' => 'pages.SalePage', 'uses' => 'App\Http\Controllers\CoinController@buy_or_sell_data']);

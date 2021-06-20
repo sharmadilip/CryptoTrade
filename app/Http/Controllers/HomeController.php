@@ -199,15 +199,15 @@ class HomeController extends Controller
         $return_data_array=array("coin"=>$symbol,"mainPer"=>round($per_change,2),"coin_price"=>round($binace_price*$usd_rate,3),'bitbns_price'=>$bitbns_tiker['highest_buy_bid']);
         //-------strategy will define buy on dip or buy on bull it will change according trand----
         if($stratgey==1) {
-            $this->crypto_trad->bullish_strategy($per_change, $trade_setting, $symbol, $bitbns_tiker, $binace_price);
+            $this->crypto_trad->bullish_strategy($per_change, $trade_setting, $symbol, $bitbns_tiker, $binace_price,$stratgey);
         }
         else if($stratgey==0)
         {
-            $this->crypto_trad->bear_strategy($per_change, $trade_setting, $symbol, $bitbns_tiker, $binace_price);
+            $this->crypto_trad->percentage_strategy($per_change, $trade_setting, $symbol, $bitbns_tiker, $binace_price,$stratgey);
         }
         else if($stratgey==2)
         {
-            $this->crypto_trad->percentage_strategy($per_change, $trade_setting, $symbol, $bitbns_tiker, $binace_price);
+            $this->crypto_trad->percentage_strategy($per_change, $trade_setting, $symbol, $bitbns_tiker, $binace_price,$stratgey);
         }
         return $return_data_array;
 

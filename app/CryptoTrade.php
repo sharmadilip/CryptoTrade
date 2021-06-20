@@ -40,7 +40,11 @@ class CryptoTrade
     $key_value=DB::table("system_settings")->select('setting_value')->where(array('setting_key'=>$key))->first();
     return $key_value->setting_value;
 }
-
+public function get_strategy($key)
+{
+    $strategy=DB::table("strategy_data")->where('strategy_key','=',$key)->first();
+    return $strategy;
+}
     /**
      * @param $key
      * @param $value
@@ -928,11 +932,12 @@ class CryptoTrade
     /**
      *
      */
-    function percentage_strategy($per_change,$trade_setting,$symbol,$bitbns_tiker,$binace_price)
+    function percentage_strategy($per_change,$trade_setting,$symbol,$bitbns_tiker,$binace_price,$stratgey)
    {   $max_qt=$trade_setting->slot_value;
        //-------percentage stratgey-------------------------
-       $buy_diff="-1";
-       $sell_dif="1";
+       $stratgey_data=self::get_strategy($stratgey);
+       $buy_diff=$stratgey_data->percentage_up;
+       $sell_dif=$stratgey_data->percentage_down;
        //---------------End Parameter------------------
        if(round($per_change,3) < $buy_diff &&$bitbns_tiker['highest_buy_bid'] > $binace_price)
        {   //---------------placing the bid not purchaing according to the function---
@@ -995,15 +1000,12 @@ class CryptoTrade
        }
 
    }
-   //---------------% strategy end------------------------------------
-   function grid_Strategy_or_stable()
-   {
 
-   }
    //----------------bulish strategy data changes----------------------------
-   function bullish_strategy($per_change,$trade_setting,$symbol,$bitbns_tiker,$binace_price)
+   function bullish_strategy($per_change,$trade_setting,$symbol,$bitbns_tiker,$binace_price,$strategy)
    {   $max_qt=$trade_setting->slot_value;
-       $buy_diff=$trade_setting->buy_deff;
+       $stratgey_data=self::get_strategy($strategy);
+       $buy_diff=$stratgey_data->percentage_up;
        if(round($per_change,3) > $buy_diff &&$bitbns_tiker['highest_buy_bid'] > $binace_price)
        {   //---------------placing the bid not purchaing according to the function---
            $purchase_price=$bitbns_tiker['highest_buy_bid']+$trade_setting->add_value;
@@ -1033,12 +1035,10 @@ class CryptoTrade
 
        }
        //-------------------------End place order && start sale order---------------------------------------
-       else if( round($per_change,3) < round($trade_setting->sell_deff) &&$bitbns_tiker['highest_buy_bid'] > $binace_price)
+       else if( round($per_change,3) < round($stratgey_data->percentage_up) &&$bitbns_tiker['highest_buy_bid'] > $binace_price)
        {   //---------------placing the bid not purchaing according to the function---
            $sell_price=$bitbns_tiker['lowest_sell_bid']-$trade_setting->add_value;
-
-
-           $sell_status=self::last_order_price_sell_validation($sell_price,$trade_setting->sell_deff,1);
+           $sell_status=self::last_order_price_sell_validation($sell_price,$stratgey_data->percentage_up,1);
            if($sell_status=="true")
            {   $status_bid=self::check_bid_already_exist($symbol,$sell_price,1);
                $coin_blance=DB::table('coin_blance')->select("quantity")->where("coin_name",$symbol)->first();
@@ -1063,69 +1063,5 @@ class CryptoTrade
            self::alert_telegram_chat("$symbol  price is  lower rate then exchange rate: ".$bitbns_tiker['lowest_sell_bid']);
        }
    }
-
-   //---------------bear strategy-----------------------------------------
-   function bear_strategy($per_change,$trade_setting,$symbol,$bitbns_tiker,$binace_price)
-   {
-       $max_qt=$trade_setting->slot_value;
-       $buy_diff=$trade_setting->sell_deff;
-       if(round($per_change,3) < $buy_diff &&$bitbns_tiker['highest_buy_bid'] > $binace_price)
-       {
-           $purchase_price=$bitbns_tiker['highest_buy_bid']+$trade_setting->add_value;
-
-           if(isset($coin_value->quantity)&&$coin_value->quantity >= $max_qt) {
-               $price_stats = self::last_order_price_validation($purchase_price, $buy_diff, 0);
-           }
-           else{
-               $price_stats="true";
-           }
-           if($price_stats=="true")
-           {   $body['quantity']=$max_qt;
-               $body['rate']=$purchase_price;
-               $status_bid=self::check_bid_already_exist($symbol,$purchase_price,0);
-               $inr_blance=DB::table('coin_blance')->select("quantity")->where("coin_name","Money")->first();
-               if($inr_blance->quantity > $max_qt*$purchase_price ) {
-                   self::create_buy_order_bitbns($symbol, $body);
-                   self::update_coin_balance();
-                   self::sys_order_status();
-                   Log::emergency("coin order has placed successfully");
-               }
-               else{
-                   Log::emergency("Money has finished");
-               }
-           }
-
-       }
-       //-------------------------End place order && start sale order---------------------------------------
-       else if( round($per_change,3) > round($trade_setting->buy_deff) &&$bitbns_tiker['highest_buy_bid'] > $binace_price)
-       {
-           $sell_price=$bitbns_tiker['lowest_sell_bid']-$trade_setting->add_value;
-
-
-           $sell_status=self::last_order_price_sell_validation($sell_price,$trade_setting->sell_deff,1);
-           if($sell_status=="true")
-           {    $status_bid=self::check_bid_already_exist($symbol,$sell_price,1);
-               $coin_blance=DB::table('coin_blance')->select("quantity")->where("coin_name",$symbol)->first();
-               if(isset($coin_blance->quantity)&&$coin_blance->quantity > 0) {
-                   $body['quantity'] = $trade_setting->slot_value;
-                   $body['rate'] = $sell_price;
-                   self::create_sell_order_bitbns($symbol, $body);
-                   self::update_coin_balance();
-                   self::sys_order_status();
-               }
-               else{
-                   Log::emergency("All Coin Has been sold");
-               }
-           }
-           Log::emergency("coin sell order has placed successfully");
-       }
-       //-------------------binance price lower block-----------------------
-       else if($binace_price > $bitbns_tiker['lowest_sell_bid'])
-       {    self::buy_trade_coin_current();
-            self::alert_telegram_chat("$symbol  price is  lower rate then exchange rate: ".$bitbns_tiker['lowest_sell_bid']);
-       }
-   }
-
-
 }
 

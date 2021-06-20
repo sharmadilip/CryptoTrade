@@ -11,16 +11,17 @@
                     <p>{{ __('Dashboard') }}</p>
                 </a>
             </li>
-            <li @if ($pageSlug == 'profile') class="active " @endif>
-                <a href="{{ route('profile.edit')  }}">
-                    <i class="tim-icons icon-single-02"></i>
-                    <p>{{ __('User Profile') }}</p>
-                </a>
-            </li>
+
             <li @if ($pageSlug == 'coins') class="active " @endif>
                 <a href="{{ route('pages.coins') }}">
                     <i class="tim-icons icon-atom"></i>
                     <p>{{ __('Coins') }}</p>
+                </a>
+            </li>
+            <li @if ($pageSlug == 'strategy') class="active " @endif>
+                <a href="{{ route('pages.strategy') }}">
+                    <i class="tim-icons icon-satisfied"></i>
+                    <p>{{ __('Strategy') }}</p>
                 </a>
             </li>
             <li @if ($pageSlug == 'orderbook') class="active " @endif>
