@@ -171,6 +171,7 @@ public function get_strategy($key)
     function create_buy_order_bitbns($symbol, $data)
     {
         $order_buy=self::should_order_or_not($symbol,"0");
+        $strategy=self::get_setting_value('strategy_value');
         if($order_buy==true) {
             $order_data = json_decode($this->Bitbns_api->create_order($symbol, $data), true);
 
@@ -178,7 +179,7 @@ public function get_strategy($key)
                 $order_id = floatval($order_data['id']);
                 $quantity = floatval($data['quantity']);
                 $rate = $data['rate'];
-                DB::table("order_table")->insert(array("order_id" => $order_id, "quantity" => $quantity, "price" => $rate, "coin" => $symbol, "order_status" => 0, "order_type" => 0, "created_at" => Carbon::now()->toDateTimeString(), "updated_at" => Carbon::now()->toDateTimeString()));
+                DB::table("order_table")->insert(array("order_id" => $order_id, "quantity" => $quantity, "price" => $rate, "coin" => $symbol, "order_status" => 0, "order_type" => 0,"strategy"=>$strategy, "created_at" => Carbon::now()->toDateTimeString(), "updated_at" => Carbon::now()->toDateTimeString()));
                 self::update_coin_balance();
                 self::alert_telegram_chat("A buy order of $symbol Quantity:- $quantity at:-$rate has created");
                 return $order_data['id'];
@@ -230,8 +231,8 @@ public function get_strategy($key)
         $strategy=self::get_setting_value("strategy_value");
         $coin_blance=DB::table("coin_blance")->select('quantity')->where('coin_name',$trade_coin)->first();
         $coin_slot=DB::table("coin_setting")->select('slot_value')->where('coin_name',$trade_coin)->first();
-        $row_limit=round($coin_blance/$coin_slot);
-        $get_price_data=DB::table('order_table')->select("price")->where(array('strategy'=>$strategy,'coin'=>$trade_coin,'order_status'=>2,"order_type"=>$order_type))->orderBy('id',"desc")->limit($row_limit)->get();
+        $row_limit=round($coin_blance->quantity/$coin_slot->slot_value);
+        $get_price_data=DB::table('order_table')->select("price")->where(array('strategy'=>$strategy,'coin'=>$trade_coin,'order_status'=>2,"order_type"=>0))->orderBy('id',"desc")->limit($row_limit)->get();
          $status="false";
         foreach($get_price_data as $get_price)
         {
@@ -293,10 +294,11 @@ public function get_strategy($key)
         if($order_sell==true) {
             $order_data = json_decode($this->Bitbns_api->sell_order($symbol, $data), true);
             if ($order_data['status'] == "1") {
+                $strategy=self::get_setting_value('strategy_value');
                 $order_id = $order_data['id'];
                 $quantity = $data['quantity'];
                 $rate = $data['rate'];
-                DB::table("order_table")->insert(array("order_id" => $order_id, "quantity" => $quantity, "price" => $rate, "coin" => $symbol, "order_status" => 0, "order_type" => 1, "created_at" => Carbon::now()->toDateTimeString(), "updated_at" => Carbon::now()->toDateTimeString()));
+                DB::table("order_table")->insert(array("order_id" => $order_id, "quantity" => $quantity, "price" => $rate, "coin" => $symbol, "order_status" => 0, "order_type" => 1,"strategy"=>$strategy, "created_at" => Carbon::now()->toDateTimeString(), "updated_at" => Carbon::now()->toDateTimeString()));
                 self::update_coin_balance();
                 self::alert_telegram_chat("A sell order of $symbol Quantity:- $quantity at:-$rate has created");
                 return $order_data['id'];
@@ -798,7 +800,7 @@ public function get_strategy($key)
 
            $my_data=explode('  ',trim(str_replace('daemon','',$p_data),"  "),2);
            $pid= (int) filter_var($my_data[0], FILTER_SANITIZE_NUMBER_INT);
-           $cmd="kill $pid";
+           $cmd="sudo kill $pid";
            exec($cmd,$rs,$post);
 
        }

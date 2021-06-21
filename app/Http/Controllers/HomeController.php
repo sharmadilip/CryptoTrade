@@ -367,8 +367,8 @@ class HomeController extends Controller
 
 function test_block_for_every_hook()
 {
-    $this->crypto_trad->check_all_commands();
-    return "success";
+    $data=$this->crypto_trad->last_order_price_sell_validation('22','1',0);
+    return $data;
 }
 
 }
