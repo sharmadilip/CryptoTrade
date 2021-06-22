@@ -125,6 +125,26 @@
       </div>
 
     </div>
+        <div class="col-md-6 ">
+            <div class="card">
+                <div class="card-header card-header-primary">
+                    <h4 class="card-title ">Price Info</h4>
+
+                </div>
+                <div class="card-body ps ps--active-y" style="max-height: 400px; overflow: auto;" id="alert_content_action">
+                    <table class="table">
+                        <tr>
+                            <th>Coin Name</th>
+                            <th>Buy Pirce</th>
+                            <th>Sell Pirce</th>
+                        </tr>
+                        <tr id="alert_content_action_tr"></tr>
+                    </table>
+
+                </div>
+            </div>
+
+        </div>
         <div class="col-md-6">
             <div class="card">
                 <div class="card-header card-header-primary">
@@ -154,26 +174,7 @@
             </div>
 
         </div>
-        <div class="col-md-6 ">
-            <div class="card">
-                <div class="card-header card-header-primary">
-                    <h4 class="card-title ">Price Info</h4>
 
-                </div>
-                <div class="card-body ps ps--active-y" style="max-height: 400px; overflow: auto;" id="alert_content_action">
-                <table class="table">
-                    <tr>
-                    <th>Coin Name</th>
-                    <th>Buy Pirce</th>
-                    <th>Sell Pirce</th>
-                    </tr>
-                    <tr id="alert_content_action_tr"></tr>
-                </table>
-
-                </div>
-            </div>
-
-        </div>
   </div>
 </div>
 
