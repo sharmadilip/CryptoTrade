@@ -289,7 +289,7 @@
                             var data =JSON.parse(JSON.stringify(responce));
                      $("#alert_content_action_tr").html('<td>'+symbol+'</td><td>'+data['highest_buy_bid']+'</td><td>'+data['lowest_sell_bid']+'</td>');
                                 intervel_count=  intervel_count+1;
-                        })},10000
+                        })},5000
                      );
                        return my_intervel;
                     }
