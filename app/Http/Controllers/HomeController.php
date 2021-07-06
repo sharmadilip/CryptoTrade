@@ -43,10 +43,15 @@ class HomeController extends Controller
         }
         $data['coins_value']=$coins_value_array;
         $data['open_oder']=$data_get;
-        $previos_data=DB::table("price_data")->select("data_json")->orderBy("id","desc")->first();
+        if(file_exists(storage_path('logs').'/laravel.log')) {
+            $log_text = file_get_contents(storage_path('logs') . '/laravel.log');
+        }
+        else{
+            $log_text="";
+        }
         $data['symbol']=$symbol->setting_value;
         $data['inr_rate']=$in_inr;
-        $data['coins_latest_price']=json_decode($previos_data->data_json,true);
+        $data['logs_data']=$log_text;
         return view('dashboard',$data);
     }
     /**
@@ -174,7 +179,9 @@ class HomeController extends Controller
     function main_thread_alog()
     {   //------------------get setting data---------------------------
         $usd_rate=$this->crypto_trad->get_setting_value('USD_INR');
-        $stratgey=$this->crypto_trad->get_setting_value('strategy_value');
+        $stratgey_key=$this->crypto_trad->get_setting_value('strategy_value');
+        //----------------set stratgey data for alogo-----------------
+        $stratgey=$this->crypto_trad->get_strategy($stratgey_key);
         $symbol =$this->crypto_trad->get_setting_value('trade_coin');
         //--------------------------get coin setting from coin-setting table---------------------------------
         $trade_setting=DB::table("coin_setting")->select("*")->where("coin_name",$symbol)->first();
@@ -189,7 +196,7 @@ class HomeController extends Controller
         //--------------------end % changes in recent price-----------------------------
         $bitbns_tiker=$this->crypto_trad->get_trade_price();
         //------------   get the minutes-------------------------
-        $upside_minutes=$this->crypto_trad->get_setting_value("up_side_minutes");
+        $upside_minutes=$stratgey->time_interval;
         //---------------------price data has been changes in database--------------------------
         $last_change=$this->crypto_trad->get_price_change_minutes_db($symbol,$upside_minutes);
         $last_price=$last_change[count($last_change)-1];
@@ -198,14 +205,14 @@ class HomeController extends Controller
         //----------------place order by price data compiare------------------------------
         $return_data_array=array("coin"=>$symbol,"mainPer"=>round($per_change,2),"coin_price"=>round($binace_price*$usd_rate,3),'bitbns_price'=>$bitbns_tiker['highest_buy_bid']);
         //-------strategy will define buy on dip or buy on bull it will change according trand----
-        if($stratgey==1) {
+        if($stratgey_key==1) {
             $this->crypto_trad->bullish_strategy($per_change, $trade_setting, $symbol, $bitbns_tiker, $binace_price,$stratgey);
         }
-        else if($stratgey==0)
+        else if($stratgey_key==0)
         {
             $this->crypto_trad->percentage_strategy($per_change, $trade_setting, $symbol, $bitbns_tiker, $binace_price,$stratgey);
         }
-        else if($stratgey==2)
+        else if($stratgey_key==2)
         {
             $this->crypto_trad->percentage_strategy($per_change, $trade_setting, $symbol, $bitbns_tiker, $binace_price,$stratgey);
         }
@@ -320,6 +327,7 @@ class HomeController extends Controller
       $this->crypto_trad->sys_order_status();
       $this->crypto_trad->update_coin_balance();
       $this->crypto_trad->update_usd_to_db();
+      unlink(storage_path('logs').'/laravel.log');
       return "true";
   }
 

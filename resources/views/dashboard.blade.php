@@ -46,27 +46,12 @@
         <div class="col-lg-6 col-md-12">
             <div class="card card-tasks">
                 <div class="card-header ">
-                    <h6 class="title d-inline">Selected Coins Price on KUcoin</h6>
-                    <p class="card-category d-inline">In last 1 minute</p>
+                    <h6 class="title d-inline">Log Details</h6>
+                 <!--   <p class="card-category d-inline"><a href="#" id="clear_log_file">Clear Logs</a> </p> -->
                 </div>
                 <div class="card-body ">
-                    <div class="table-full-width table-responsive">
-                        <table class="table">
-                            <tbody>
-                            @foreach($coins_latest_price as $key=> $my_coin)
-                                <tr>
-
-                                    <td>
-                                        <p class="title ">{{$key}}</p>
-                                    </td>
-                                    <td>
-                                        <p class="title">{{round($my_coin*$inr_rate,3)}}</p>
-                                    </td>
-
-                                </tr>
-                            @endforeach
-                            </tbody>
-                        </table>
+                    <div class="table-full-width table-responsive bg-white log_data_table">
+                   {{$logs_data}}
                     </div>
                 </div>
             </div>

@@ -232,7 +232,7 @@ public function get_strategy($key)
         $coin_blance=DB::table("coin_blance")->select('quantity')->where('coin_name',$trade_coin)->first();
         $coin_slot=DB::table("coin_setting")->select('slot_value')->where('coin_name',$trade_coin)->first();
         $row_limit=round($coin_blance->quantity/$coin_slot->slot_value);
-        $get_price_data=DB::table('order_table')->select("price")->where(array('strategy'=>$strategy,'coin'=>$trade_coin,'order_status'=>2,"order_type"=>0))->orderBy('id',"desc")->limit($row_limit)->get();
+        $get_price_data=DB::table('order_table')->select("price","id")->where(array('strategy'=>$strategy,'coin'=>$trade_coin,'order_status'=>2,"order_type"=>0,"order_coins_status"=>0))->orderBy('id',"desc")->limit($row_limit)->get();
          $status="false";
         foreach($get_price_data as $get_price)
         {
@@ -240,6 +240,8 @@ public function get_strategy($key)
             if($current_change >= $percentage_change&&$current_price > $get_price->price)
             {
                 $status="true";
+                DB::table("order_table")->where('id','=',$get_price->id)->limit(1)->update(array('order_coins_status'=>1));
+                break;
             }
             //echo $current_change."--".$percentage_change;
 
@@ -928,7 +930,7 @@ public function get_strategy($key)
     function percentage_strategy($per_change,$trade_setting,$symbol,$bitbns_tiker,$binace_price,$stratgey)
    {   $max_qt=$trade_setting->slot_value;
        //-------percentage stratgey-------------------------
-       $stratgey_data=self::get_strategy($stratgey);
+       $stratgey_data=$stratgey;
        $buy_diff=$stratgey_data->percentage_up;
        $sell_dif=$stratgey_data->percentage_down;
        //---------------End Parameter------------------
@@ -997,7 +999,7 @@ public function get_strategy($key)
    //----------------bulish strategy data changes----------------------------
    function bullish_strategy($per_change,$trade_setting,$symbol,$bitbns_tiker,$binace_price,$strategy)
    {   $max_qt=$trade_setting->slot_value;
-       $stratgey_data=self::get_strategy($strategy);
+       $stratgey_data=$strategy;
        $buy_diff=$stratgey_data->percentage_up;
        if(round($per_change,3) > $buy_diff &&$bitbns_tiker['highest_buy_bid'] > $binace_price)
        {   //---------------placing the bid not purchaing according to the function---
