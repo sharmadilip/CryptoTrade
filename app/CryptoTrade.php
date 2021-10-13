@@ -182,6 +182,7 @@ public function get_strategy($key)
                 DB::table("order_table")->insert(array("order_id" => $order_id, "quantity" => $quantity, "price" => $rate, "coin" => $symbol, "order_status" => 0, "order_type" => 0,"strategy"=>$strategy, "created_at" => Carbon::now()->toDateTimeString(), "updated_at" => Carbon::now()->toDateTimeString()));
                 self::update_coin_balance();
                 self::alert_telegram_chat("A buy order of $symbol Quantity:- $quantity at:-$rate has created");
+                Log::emergency("coin order has placed successfully");
                 return $order_data['id'];
             } else {
                 Log::error("Error in order Place:-" . json_encode($order_data));
@@ -230,8 +231,16 @@ public function get_strategy($key)
         $trade_coin=self::get_setting_value("trade_coin");
         $strategy=self::get_setting_value("strategy_value");
         $coin_blance=DB::table("coin_blance")->select('quantity')->where('coin_name',$trade_coin)->first();
+        
         $coin_slot=DB::table("coin_setting")->select('slot_value')->where('coin_name',$trade_coin)->first();
+        if(!isset($coin_blance->quantity))
+        {
+            $row_limit=1;
+        }
+        else{
+        
         $row_limit=round($coin_blance->quantity/$coin_slot->slot_value);
+        }
         $get_price_data=DB::table('order_table')->select("price","id")->where(array('strategy'=>$strategy,'coin'=>$trade_coin,'order_status'=>2,"order_type"=>0,"order_coins_status"=>0))->orderBy('id',"desc")->limit($row_limit)->get();
          $status="false";
         foreach($get_price_data as $get_price)
@@ -262,7 +271,6 @@ public function get_strategy($key)
         $status=true;
         //-------------------old data order status 2 successfull order-----------------------------------------
         $order_data=DB::table("order_table")->select('order_id')->where('created_at',">=",$minute_minute)->where(array("coin"=>$symbol,"order_type"=>$type,"order_status"=>2))->orderBy('id',"desc")->first();
-
         if(isset($order_data->order_id))
         {$status=false;}
         if($status==true) {
@@ -303,6 +311,7 @@ public function get_strategy($key)
                 DB::table("order_table")->insert(array("order_id" => $order_id, "quantity" => $quantity, "price" => $rate, "coin" => $symbol, "order_status" => 0, "order_type" => 1,"strategy"=>$strategy, "created_at" => Carbon::now()->toDateTimeString(), "updated_at" => Carbon::now()->toDateTimeString()));
                 self::update_coin_balance();
                 self::alert_telegram_chat("A sell order of $symbol Quantity:- $quantity at:-$rate has created");
+                Log::emergency("coin sell order has placed successfully");
                 return $order_data['id'];
             } else {
                 Log::error("Error in order Place:-" . json_encode($order_data));
@@ -434,6 +443,8 @@ public function get_strategy($key)
 
         foreach ($get_coins as $data_sys) {
             $list_sys = json_decode($this->Bitbns_api->order_list_data($data_sys->coin_name, $body),true);
+            if(isset($list_sys['data']))
+            {
             foreach ($list_sys['data'] as $order_row)
             {
                 $type=1;
@@ -457,6 +468,7 @@ public function get_strategy($key)
                     DB::table("order_table")->updateOrInsert(array("order_id"=>$order_row['id']),array("order_id"=>$order_row['id'],"quantity"=>$quatity,"price"=>round($order_row['rate'],6),"coin"=>$data_sys->coin_name,"order_status"=>2,"order_type"=>$type,"created_at"=>Carbon::now()->toDateTimeString(),"updated_at"=>Carbon::now()->toDateTimeString()));
                 }
 
+            }
             }
         }
         return "Updated Sucessfully";
@@ -954,7 +966,7 @@ public function get_strategy($key)
                    self::create_buy_order_bitbns($symbol, $body);
                    self::update_coin_balance();
                    self::sys_order_status();
-                   Log::emergency("coin order has placed successfully");
+
                }
                else{
                    Log::emergency("Money has finished");
@@ -980,7 +992,6 @@ public function get_strategy($key)
                    self::create_sell_order_bitbns($symbol, $body);
                    self::update_coin_balance();
                    self::sys_order_status();
-                   Log::emergency("coin sell order has placed successfully");
                }
                else{
                    Log::emergency("All Coin Has been sold");
@@ -1004,7 +1015,7 @@ public function get_strategy($key)
        if(round($per_change,3) > $buy_diff &&$bitbns_tiker['highest_buy_bid'] > $binace_price)
        {   //---------------placing the bid not purchaing according to the function---
            $purchase_price=$bitbns_tiker['highest_buy_bid']+$trade_setting->add_value;
-
+           $coin_value=DB::table("coin_blance")->select("quantity")->where("coin_name","=",$symbol)->first();
            if(isset($coin_value->quantity)&&$coin_value->quantity >= $max_qt) {
                $price_stats = self::last_order_price_validation($purchase_price, $buy_diff, 0);
            }
@@ -1021,7 +1032,7 @@ public function get_strategy($key)
                    self::create_buy_order_bitbns($symbol, $body);
                    self::update_coin_balance();
                    self::sys_order_status();
-                   Log::emergency("coin order has placed successfully");
+
                }
                else{
                    Log::emergency("Money has finished");
@@ -1044,7 +1055,7 @@ public function get_strategy($key)
                    self::create_sell_order_bitbns($symbol, $body);
                    self::update_coin_balance();
                    self::sys_order_status();
-                   Log::emergency("coin sell order has placed successfully");
+
                }
                else{
                    Log::emergency("All Coin Has been sold");
@@ -1058,5 +1069,16 @@ public function get_strategy($key)
            self::alert_telegram_chat("$symbol  price is  lower rate then exchange rate: ".$bitbns_tiker['lowest_sell_bid']);
        }
    }
-}
 
+
+//--------------function for setting grid stratgey---------------------------------------------------
+  function gird_trading_run($per_change,$trade_setting,$symbol,$bitbns_tiker,$binace_price,$strategy)
+  { 
+    $max_price=$strategy->percentage_up;
+    $low_price=$strategy->percentage_down;
+    $no_of_grid=$strategy->order_repet;
+    $buy_pricesell_price=$bitbns_tiker['highest_buy_bid'];
+    $buy_price=$bitbns_tiker['lowest_sell_bid'];
+
+  }
+}
