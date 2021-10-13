@@ -472,6 +472,7 @@ public function get_strategy($key)
             }
         }
         return "Updated Sucessfully";
+        
     }
 
     /**
