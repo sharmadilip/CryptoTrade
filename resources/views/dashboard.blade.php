@@ -59,7 +59,7 @@
         <div class="col-lg-6 col-md-12">
             <div class="card card-tasks">
                 <div class="card-header">
-                    <h4 class="card-title">Order Book (last 10 orders)</h4>
+                    <h4 class="card-title">Order Book (last 10 orders) | Bot Status:{{$bot_profit}}</h4>
                 </div>
                 <div class="card-body">
                     <div class="table-full-width table-responsive">

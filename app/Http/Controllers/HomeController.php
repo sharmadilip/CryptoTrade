@@ -36,6 +36,7 @@ class HomeController extends Controller
         $data_get=DB::table('order_table')->select("*")->where('created_at','>',$date)->where("order_status",">","1")->orderBy("id","desc")->paginate(10);
         $coins_value=DB::table("coin_blance")->select("*")->get();
         $symbol=DB::table("system_settings")->select('setting_value')->where(array('setting_key'=>'trade_coin'))->first();
+        $data['bot_profit']=self::get_profit_by_boat($date);
         $coins_value_array=array();
         foreach ($coins_value as $c_data)
         {
@@ -66,7 +67,7 @@ class HomeController extends Controller
         $setting_data=array();
         foreach ($ticks as  $my_data)
         {
-            $setting_data[]=array($my_data['openTime'],array(round($my_data['open']*$usd_rate->setting_value,2),round($my_data['high']*$usd_rate->setting_value,2),round($my_data['low']*$usd_rate->setting_value,2),round($my_data['close']*$usd_rate->setting_value,2)));
+            $setting_data[]=array($my_data['openTime'],array(round($my_data['open']*$usd_rate->setting_value,6),round($my_data['high']*$usd_rate->setting_value,6),round($my_data['low']*$usd_rate->setting_value,6),round($my_data['close']*$usd_rate->setting_value,6)));
         }
 
         echo json_encode($setting_data);
@@ -283,6 +284,7 @@ class HomeController extends Controller
     {
         $this->crypto_trad->insert_price_to_db_every_minute();
         $get_bot_status=$this->crypto_trad->get_setting_value("run_the_bot");
+        
         if($get_bot_status==1) {
             self::main_thread_alog();
         }
@@ -327,7 +329,9 @@ class HomeController extends Controller
       $this->crypto_trad->sys_order_status();
       $this->crypto_trad->update_coin_balance();
       $this->crypto_trad->update_usd_to_db();
-      unlink(storage_path('logs').'/laravel.log');
+      if(file_exists(storage_path('logs').'/laravel.log')) {
+          unlink(storage_path('logs') . '/laravel.log');
+      }
       return "true";
   }
 
@@ -373,9 +377,36 @@ class HomeController extends Controller
       return "success";
   }
 
+  function get_profit_by_boat($from_data)
+  {
+   if($from_data=='')
+   {
+       $from_data=Carbon::now()->subDays('-1')->toDateString();
+   }
+   $symbol=$this->crypto_trad->get_setting_value('Trade_Coin');
+   $stratgey_key=$this->crypto_trad->get_setting_value('strategy_value');
+
+   $total_buy_data=DB::table("order_table")->select("quantity","price")->where(array("coin"=>$symbol,"strategy"=>$stratgey_key,"order_type"=>0))->where('created_at','>',$from_data)->get();
+   $total_buy_amount=0; 
+   foreach($total_buy_data as $buy_data)
+   {
+       $amout=$buy_data->quantity*$buy_data->price;
+       $total_buy_amount=$total_buy_amount+$amout;
+   }
+   $total_sell_data=DB::table("order_table")->select("quantity","price")->where(array("coin"=>$symbol,"strategy"=>$stratgey_key,"order_type"=>1))->where('created_at','>',$from_data)->get();
+   $total_sell_amount=0; 
+   foreach($total_sell_data as $sell_data)
+   {
+       $amout=$sell_data->quantity*$sell_data->price;
+       $total_sell_amount=$total_buy_amount+$amout;
+   }
+   $total_return=round(($total_sell_amount-$total_buy_amount),2);
+   return $total_return;
+  }
+
 function test_block_for_every_hook()
 {
-    $data=$this->crypto_trad->last_order_price_sell_validation('22','1',0);
+    $data=$this->crypto_trad->Bitbns_api->update_usd_price();
     return $data;
 }
 

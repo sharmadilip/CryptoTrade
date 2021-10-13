@@ -21,8 +21,8 @@ class BitbnsApi
     //--------------end keys--------------------
     public function __construct()
     {
-        $this->public_key=env('BITBNS_KEY_PUBLIC'," ");
-        $this->secrete_key=env('BITBNS_KEY_SECRET',"");
+        $this->public_key=env('BITBNS_KEY_PUBLIC',"83FCCF44961BE8FDF4AB2E659EDD035D");
+        $this->secrete_key=env('BITBNS_KEY_SECRET',"6FA4608A229A458C789CE808A925A956");
         $this->binance_pulic_key=env('BINANCE_KEY_PUBLIC');
         $this->binance_secrate_key=env('BINANCE_KEY_SECRET');
         $this->api_base_ulr="https://api.bitbns.com/api/trade/v1/";
@@ -47,12 +47,12 @@ class BitbnsApi
     }
     public function get_kucoin_price_usdt()
     {
-        $get_data=json_decode(Http::get("https://api.kucoin.top/api/v1/prices"),true);
+        $get_data=json_decode(Http::get("https://api.kucoin.com/api/v1/prices"),true);
         return $get_data['data'];
     }
     public function get_kucoin_price_symbol_usdt($symbol)
     {
-        $get_data=json_decode(Http::get("https://api.kucoin.top/api/v1/prices"),true);
+        $get_data=json_decode(Http::get("https://api.kucoin.com/api/v1/prices"),true);
         return $get_data['data'][$symbol];
     }
     public function get_ticker()
@@ -216,8 +216,8 @@ public function execute_script_http($url_slug,$body)
 //--------------update $ price----------------------------------------------------------------
     public function update_usd_price()
     {
-        $get_amount = Http::get("https://free.currconv.com/api/v7/convert?q=USD_INR&compact=ultra&apiKey=78b3b8e962d0f02ceee4");
-        $price=$get_amount['USD_INR'];
+        $get_amount = Http::get("https://api.exchangerate-api.com/v4/latest/USD");
+        $price=$get_amount['rates']['INR'];
         return $price;
     }
 
