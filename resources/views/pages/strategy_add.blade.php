@@ -44,6 +44,11 @@
                             <input type="number" name="order_again_time" class="form-control{{ $errors->has('order_again_time') ? ' is-invalid' : '' }}" value="" placeholder="{{ __('value') }}">
                             @include('alerts.feedback', ['field' => "order_again_time"])
                         </div>
+                        <div class="form-group{{ $errors->has("stop_loss") ? ' has-danger' : '' }}">
+                            <label>Stop Loss </label>
+                            <input type="text" name="stop_loss" class="form-control{{ $errors->has('stop_loss') ? ' is-invalid' : '' }}" value="" placeholder="{{ __('value') }}">
+                            @include('alerts.feedback', ['field' => "stop_loss"])
+                        </div>
                         <div class="form-group{{ $errors->has("strategy_key") ? ' has-danger' : '' }}">
                             <label>Strateg Key </label>
                             <input type="text" name="strategy_key" class="form-control{{ $errors->has('strategy_key') ? ' is-invalid' : '' }}" value="" placeholder="{{ __('value') }}">

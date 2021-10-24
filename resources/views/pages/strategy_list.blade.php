@@ -37,6 +37,9 @@
                       Order Again time
                   </th>
                   <th>
+                      Stop Loss
+                  </th>
+                  <th>
                       Strategy key
                   </th>
                   <th>
@@ -66,6 +69,9 @@
                       </td>
                       <td>
                           {{$currrent_data->order_again_time}}
+                      </td>
+                      <td>
+                          {{$currrent_data->stop_loss}}
                       </td>
                       <td>
                           {{$currrent_data->strategy_key}}

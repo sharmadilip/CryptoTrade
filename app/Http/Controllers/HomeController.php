@@ -386,19 +386,19 @@ class HomeController extends Controller
    $symbol=$this->crypto_trad->get_setting_value('Trade_Coin');
    $stratgey_key=$this->crypto_trad->get_setting_value('strategy_value');
 
-   $total_buy_data=DB::table("order_table")->select("quantity","price")->where(array("coin"=>$symbol,"strategy"=>$stratgey_key,"order_type"=>0))->where('created_at','>',$from_data)->get();
+   $total_buy_data=DB::table("order_table")->select("quantity","price")->where(array("coin"=>$symbol,"strategy"=>$stratgey_key,"order_status"=>2,"order_type"=>0,"order_coins_status"=>1))->where('created_at','>',$from_data)->get();
    $total_buy_amount=0; 
    foreach($total_buy_data as $buy_data)
    {
-       $amout=$buy_data->quantity*$buy_data->price;
-       $total_buy_amount=$total_buy_amount+$amout;
+       $amout_buy=$buy_data->quantity*$buy_data->price;
+       $total_buy_amount=$total_buy_amount+$amout_buy;
    }
-   $total_sell_data=DB::table("order_table")->select("quantity","price")->where(array("coin"=>$symbol,"strategy"=>$stratgey_key,"order_type"=>1))->where('created_at','>',$from_data)->get();
+   $total_sell_data=DB::table("order_table")->select("quantity","price")->where(array("coin"=>$symbol,"strategy"=>$stratgey_key,"order_status"=>2,"order_type"=>1))->where('created_at','>',$from_data)->get();
    $total_sell_amount=0; 
    foreach($total_sell_data as $sell_data)
    {
        $amout=$sell_data->quantity*$sell_data->price;
-       $total_sell_amount=$total_buy_amount+$amout;
+       $total_sell_amount=$total_sell_amount+$amout;
    }
    $total_return=round(($total_sell_amount-$total_buy_amount),2);
    return $total_return;

@@ -5,6 +5,7 @@ use App\BitbnsApi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Hamcrest\Arrays\IsArray;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Artisan;
@@ -440,7 +441,9 @@ public function get_strategy($key)
         $body['page']=0;
         $body['since']=Carbon::today();
         $get_coins=DB::table("coin_setting")->select("coin_name")->get();
-
+        $run_the_bot=self::get_setting_value('run_the_bot');
+        $trade_coin=self::get_setting_value('Trade_Coin');
+        $strategy=self::get_setting_value('strategy_value');
         foreach ($get_coins as $data_sys) {
             $list_sys = json_decode($this->Bitbns_api->order_list_data($data_sys->coin_name, $body),true);
             if(isset($list_sys['data']))
@@ -448,7 +451,7 @@ public function get_strategy($key)
             foreach ($list_sys['data'] as $order_row)
             {
                 $type=1;
-                if($data_sys->coin_name=="XRP"||$data_sys->coin_name=="XLM")
+                if($data_sys->coin_name=="XRP"||$data_sys->coin_name=="XLM"||$data_sys->coin_name=="CAS")
                 {
                     $quatity=$order_row['crypto']/100;
                 }
@@ -459,6 +462,22 @@ public function get_strategy($key)
                 {
                     $type=0;
                 }
+                //---------if current coin is trade coin-----------
+                if($trade_coin==$data_sys->coin_name&&$type==1&&$run_the_bot==1)
+                {
+                 $check_order_exit=DB::table('order_table')->select("order_id")->where(array("order_id"=>$order_row['id']))->first();
+                 if(isset($check_order_exit->order_id))
+                 {
+                    DB::table("order_table")->updateOrInsert(array("order_id"=>$order_row['id']),array("order_id"=>$order_row['id'],"quantity"=>$quatity,"price"=>round($order_row['rate'],6),"coin"=>$data_sys->coin_name,"order_status"=>2,"order_type"=>$type));
+                 }
+                 else{
+                    DB::table("order_table")->updateOrInsert(array("order_id"=>$order_row['id']),array("order_id"=>$order_row['id'],"quantity"=>$quatity,"price"=>round($order_row['rate'],6),"coin"=>$data_sys->coin_name,"order_status"=>2,"order_type"=>$type,"strategy"=>$strategy,"created_at"=>Carbon::now()->toDateTimeString(),"updated_at"=>Carbon::now()->toDateTimeString()));
+                 }
+
+                }
+                //---------update coin order book as ordinary order book------------------
+                else{
+
                 $check_order_exit=DB::table('order_table')->select("order_id")->where(array("order_id"=>$order_row['id']))->first();
                 if(isset($check_order_exit->order_id))
                 {
@@ -467,6 +486,7 @@ public function get_strategy($key)
                 else{
                     DB::table("order_table")->updateOrInsert(array("order_id"=>$order_row['id']),array("order_id"=>$order_row['id'],"quantity"=>$quatity,"price"=>round($order_row['rate'],6),"coin"=>$data_sys->coin_name,"order_status"=>2,"order_type"=>$type,"created_at"=>Carbon::now()->toDateTimeString(),"updated_at"=>Carbon::now()->toDateTimeString()));
                 }
+            }
 
             }
             }
@@ -474,6 +494,7 @@ public function get_strategy($key)
         return "Updated Sucessfully";
         
     }
+
 
     /**
      * @return string
@@ -931,7 +952,7 @@ public function get_strategy($key)
     /**
      *
      */
-    function sell_all_coins_bitcoin_down()
+    function trigger_stop_loss_order($coin,$order_purchase)
    {
 
 
@@ -1081,5 +1102,46 @@ public function get_strategy($key)
     $buy_pricesell_price=$bitbns_tiker['highest_buy_bid'];
     $buy_price=$bitbns_tiker['lowest_sell_bid'];
 
+  }
+  //------------total profit or loss by date-----------
+  function total_sale_purchase_profit($date)
+  {
+    $get_all_row=DB::table("order_table")->select("*")->get();
+    $coins_data=array();
+    foreach($get_all_row as $order_row)
+    { 
+        $update_data_array=array();
+     if(isset($coins_data[$order_row->coin]))
+     {  $previos_data=$coins_data[$order_row->coin];
+        if($order_row->order_type==0)
+        {
+        $update_data_array['total_buy']=$previos_data['total_buy']+$order_row->quantity;
+        $update_data_array['total_buy_price']=$previos_data['total_buy_price']+round($order_row->quantity*$order_row->price,3);
+        }
+        else{
+           $update_data_array['total_sell']=$previos_data['total_sell']+$order_row->quantity;
+           $update_data_array['total_sell_price']=$previos_data['total_sell_price']+round($order_row->quantity*$order_row->price,3);
+        }
+         
+     }
+     else{
+         if($order_row->order_type==0)
+         {
+         $update_data_array['total_buy']=$order_row->quantity;
+         $update_data_array['total_buy_price']=round($order_row->quantity*$order_row->price,3);
+         }
+         else{
+            $update_data_array['total_sell']=$order_row->quantity;
+            $update_data_array['total_sell_price']=round($order_row->quantity*$order_row->price,3);
+         }
+     }
+     $coins_data[$order_row->coin]=$update_data_array;
+  }
+
+  }
+
+  function stop_loss_boat()
+  {
+      
   }
 }

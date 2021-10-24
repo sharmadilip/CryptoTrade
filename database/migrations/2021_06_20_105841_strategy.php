@@ -21,6 +21,7 @@ class Strategy extends Migration
             $table->integer('time_interval');
             $table->integer('order_repet');
             $table->integer('order_again_time');
+            $table->integer('stop_loss');
             $table->integer('strategy_key');
             $table->timestamps();
         });
