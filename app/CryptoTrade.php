@@ -41,6 +41,7 @@ class CryptoTrade
     $key_value=DB::table("system_settings")->select('setting_value')->where(array('setting_key'=>$key))->first();
     return $key_value->setting_value;
 }
+//--------get streatgey data----------------------
 public function get_strategy($key)
 {
     $strategy=DB::table("strategy_data")->where('strategy_key','=',$key)->first();
@@ -1103,45 +1104,34 @@ public function get_strategy($key)
     $buy_price=$bitbns_tiker['lowest_sell_bid'];
 
   }
-  //------------total profit or loss by date-----------
-  function total_sale_purchase_profit($date)
-  {
-    $get_all_row=DB::table("order_table")->select("*")->get();
-    $coins_data=array();
-    foreach($get_all_row as $order_row)
-    { 
-        $update_data_array=array();
-     if(isset($coins_data[$order_row->coin]))
-     {  $previos_data=$coins_data[$order_row->coin];
-        if($order_row->order_type==0)
-        {
-        $update_data_array['total_buy']=$previos_data['total_buy']+$order_row->quantity;
-        $update_data_array['total_buy_price']=$previos_data['total_buy_price']+round($order_row->quantity*$order_row->price,3);
-        }
-        else{
-           $update_data_array['total_sell']=$previos_data['total_sell']+$order_row->quantity;
-           $update_data_array['total_sell_price']=$previos_data['total_sell_price']+round($order_row->quantity*$order_row->price,3);
-        }
-         
-     }
-     else{
-         if($order_row->order_type==0)
-         {
-         $update_data_array['total_buy']=$order_row->quantity;
-         $update_data_array['total_buy_price']=round($order_row->quantity*$order_row->price,3);
-         }
-         else{
-            $update_data_array['total_sell']=$order_row->quantity;
-            $update_data_array['total_sell_price']=round($order_row->quantity*$order_row->price,3);
-         }
-     }
-     $coins_data[$order_row->coin]=$update_data_array;
-  }
-
-  }
-
+  //--------------stop loss if boat avg price is lover then price define in stratgey------------
   function stop_loss_boat()
   {
-      
+    $symbol=self::get_setting_value('Trade_Coin');
+    $stratgey_key=self::get_setting_value('strategy_value');
+    $stratgey_data=self::get_strategy($stratgey_key);
+    $get_data=DB::table("order_table")->select("*")->where(array("order_type"=>1,"strategy"=>$stratgey_key))->orderBy("id","desc")->get();
+    $total_coins=DB::table("coin_blance")->select("quantity")->where("coin_name",$symbol)->first();
+    $purchased_coins=0;
+    $buy_price=array();
+    $current_price=self::get_trade_price();
+    foreach($get_data as $order_data)
+    {
+
+     $buy_price[]=$order_data->price;
+     $purchased_coins=$purchased_coins+$order_data->quantity;
+     if($purchased_coins>=$total_coins)
+     {
+         break;
+     }
+    }
+    $average_price = array_sum($buy_price)/count($buy_price);
+    $total_cahnge_percentage=self::get_percentage_change($current_price['highest_buy_bid'],$average_price);
+    if($total_cahnge_percentage > -$stratgey_data->stop_loss)
+    {   $body["quantity"]=$total_coins;
+        $body["rate"]=$current_price['highest_buy_bid'];
+        self::create_sell_order_bitbns($symbol, $body);
+    }
+    
   }
 }
