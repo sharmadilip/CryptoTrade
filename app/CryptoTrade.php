@@ -452,7 +452,7 @@ public function get_strategy($key)
             foreach ($list_sys['data'] as $order_row)
             {
                 $type=1;
-                if($data_sys->coin_name=="XRP"||$data_sys->coin_name=="XLM"||$data_sys->coin_name=="CAS")
+                if($data_sys->coin_name=="XRP"||$data_sys->coin_name=="XLM"||$data_sys->coin_name=="CAS"||$data_sys->coin_name=="BAT")
                 {
                     $quatity=$order_row['crypto']/100;
                 }
@@ -1092,46 +1092,42 @@ public function get_strategy($key)
            self::alert_telegram_chat("$symbol  price is  lower rate then exchange rate: ".$bitbns_tiker['lowest_sell_bid']);
        }
    }
-
-
-//--------------function for setting grid stratgey---------------------------------------------------
-  function gird_trading_run($per_change,$trade_setting,$symbol,$bitbns_tiker,$binace_price,$strategy)
-  { 
-    $max_price=$strategy->percentage_up;
-    $low_price=$strategy->percentage_down;
-    $no_of_grid=$strategy->order_repet;
-    $buy_pricesell_price=$bitbns_tiker['highest_buy_bid'];
-    $buy_price=$bitbns_tiker['lowest_sell_bid'];
-
-  }
+   
   //--------------stop loss if boat avg price is lover then price define in stratgey------------
   function stop_loss_boat()
   {
     $symbol=self::get_setting_value('Trade_Coin');
     $stratgey_key=self::get_setting_value('strategy_value');
     $stratgey_data=self::get_strategy($stratgey_key);
-    $get_data=DB::table("order_table")->select("*")->where(array("order_type"=>1,"strategy"=>$stratgey_key))->orderBy("id","desc")->get();
+    $get_data=DB::table("order_table")->select("*")->where(array("order_type"=>0,"strategy"=>$stratgey_key,'coin'=>$symbol))->orderBy("id","desc")->get();
     $total_coins=DB::table("coin_blance")->select("quantity")->where("coin_name",$symbol)->first();
     $purchased_coins=0;
     $buy_price=array();
     $current_price=self::get_trade_price();
+   
+    if($total_coins->quantity>0)
+    {
     foreach($get_data as $order_data)
     {
 
      $buy_price[]=$order_data->price;
      $purchased_coins=$purchased_coins+$order_data->quantity;
-     if($purchased_coins>=$total_coins)
+     if($purchased_coins>=$total_coins->quantity)
      {
          break;
      }
     }
     $average_price = array_sum($buy_price)/count($buy_price);
     $total_cahnge_percentage=self::get_percentage_change($current_price['highest_buy_bid'],$average_price);
-    if($total_cahnge_percentage > -$stratgey_data->stop_loss)
-    {   $body["quantity"]=$total_coins;
+    if($total_cahnge_percentage < -$stratgey_data->stop_loss)
+    {   $body["quantity"]=$total_coins->quantity;
         $body["rate"]=$current_price['highest_buy_bid'];
         self::create_sell_order_bitbns($symbol, $body);
+        return "sell Created Sucessfully-".$total_cahnge_percentage;
     }
+    return "Avg Price=".$average_price." CurrentPrice=".$current_price['highest_buy_bid'];
     
   }
+  return "Coins Not avalible";
+ }
 }

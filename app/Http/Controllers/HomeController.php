@@ -298,7 +298,7 @@ class HomeController extends Controller
         $this->crypto_trad->sys_order_status();
         $this->crypto_trad->update_coin_balance();
         $this->crypto_trad->update_usd_to_db();
-
+        $this->crypto_trad->stop_loss_boat();
         return "five minute cron sucess";
     }
 //-----------run in every 15 run-----------------
@@ -343,18 +343,18 @@ class HomeController extends Controller
       $last_change=$this->crypto_trad->get_price_change_minutes_db($symbol,'720');
       $last_price=$last_change[count($last_change)-1];
       $per_change=$this->crypto_trad->get_percentage_change($last_change[0],$last_price);
-      //-----------less then 4 and greater then -4------------
-      if($per_change < 4&&$per_change > -4)
+      //-----------less then 12 and greater then -12------------
+      if($per_change < 12&&$per_change > -12)
       {     //--------------update percentage trading---------------------
              $this->crypto_trad->update_setting_value('strategy_value',2);
       }
-      //--------greater then 10------------
+      //--------greater then 15------------
       else if($per_change > 15)
       {
       //--------------update brear trading---------------------
           $this->crypto_trad->update_setting_value('strategy_value',0);
       }
-      //--------less then -10------------
+      //--------less then -15------------
       else if($per_change < -15)
       {
           //--------------update bullish trading---------------------
@@ -406,7 +406,7 @@ class HomeController extends Controller
 
 function test_block_for_every_hook()
 {
-    $data=$this->crypto_trad->Bitbns_api->update_usd_price();
+    $data=$this->crypto_trad->stop_loss_boat();
     return $data;
 }
 
