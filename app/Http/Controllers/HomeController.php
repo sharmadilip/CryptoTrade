@@ -241,8 +241,8 @@ class HomeController extends Controller
             $sell_price=$bitbns_tiker['highest_buy_bid'];
             $status_bid=$this->crypto_trad->check_bid_already_exist($symbol,$sell_price,1);
 
-                $coin_blance=DB::table('coin_blance')->select("quantity")->where("coin_name",$symbol)->first();
-                if($coin_blance->quantity > 0) {
+                $coin_blance=DB::table('coin_blance')->select("quantity")->where(array("coin_name"=>$symbol))->first();
+                if(isset($coin_blance)&&$coin_blance->quantity > 0) {
                     $body['quantity'] = $coin_blance->quantity;
                     $body['rate'] = $sell_price;
                     $this->crypto_trad->create_sell_order_bitbns($symbol, $body);
