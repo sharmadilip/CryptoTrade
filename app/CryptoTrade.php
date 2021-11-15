@@ -512,7 +512,7 @@ public function get_strategy($key)
             foreach ($list_sys['data'] as $order_row)
             {
                 $type=1;
-                if($data_sys->coin_name=="XRP"||$data_sys->coin_name=="XLM")
+                if($data_sys->coin_name=="XRP"||$data_sys->coin_name=="XLM"||$data_sys->coin_name=="CHR")
                 {
                     $quatity=$order_row['crypto']/100;
                 }
@@ -950,14 +950,6 @@ public function get_strategy($key)
 
 }
 
-    /**
-     *
-     */
-    function trigger_stop_loss_order($coin,$order_purchase)
-   {
-
-
-   }
 
     /**
      *
@@ -979,7 +971,8 @@ public function get_strategy($key)
            else{
                $price_stats="true";
            }
-           if($price_stats=="true")
+           $check_max_order=self::order_repet_stop($strategy_data,$trade_setting);
+           if($price_stats=="true"&&$check_max_order==true)
            {   $body['quantity']=$max_qt;
                $body['rate']=$purchase_price;
                self::check_bid_already_exist($symbol,$purchase_price,0);
@@ -1045,7 +1038,9 @@ public function get_strategy($key)
            else{
                $price_stats="true";
            }
-           if($price_stats=="true")
+
+           $check_max_order=self::order_repet_stop($strategy_data,$trade_setting);
+           if($price_stats=="true"&&$check_max_order==true)
            {
                $status_bid=self::check_bid_already_exist($symbol,$purchase_price,0);
                $body['quantity']=$max_qt;
@@ -1104,7 +1099,10 @@ public function get_strategy($key)
     $purchased_coins=0;
     $buy_price=array();
     $current_price=self::get_trade_price();
-   
+   if(!isset($total_coins))
+   {
+       return 0;
+   }
     if($total_coins->quantity>0)
     {
     foreach($get_data as $order_data)
@@ -1130,4 +1128,20 @@ public function get_strategy($key)
   }
   return "Coins Not avalible";
  }
+
+ //--------------order repeat limit by bot----------------------
+
+function order_repet_stop($strategy_data,$coin_data)
+{
+    $total_qt=DB::table("coin_blance")->select("quantity")->where("coin_name","=",$coin_data->coin_name)->first();
+    $max_quantity=$coin_data->slot_value*$strategy_data->order_repet;
+    if($total_qt->quantity <= $max_quantity)
+    {
+        return true;
+    }
+    else{
+        return false;
+    }
+}
+
 }
