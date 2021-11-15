@@ -971,7 +971,7 @@ public function get_strategy($key)
            else{
                $price_stats="true";
            }
-           $check_max_order=self::order_repet_stop($strategy_data,$trade_setting);
+           $check_max_order=self::order_repet_stop($stratgey_data,$trade_setting);
            if($price_stats=="true"&&$check_max_order==true)
            {   $body['quantity']=$max_qt;
                $body['rate']=$purchase_price;
@@ -1039,7 +1039,7 @@ public function get_strategy($key)
                $price_stats="true";
            }
 
-           $check_max_order=self::order_repet_stop($strategy_data,$trade_setting);
+           $check_max_order=self::order_repet_stop($stratgey_data,$trade_setting);
            if($price_stats=="true"&&$check_max_order==true)
            {
                $status_bid=self::check_bid_already_exist($symbol,$purchase_price,0);
