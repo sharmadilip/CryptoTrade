@@ -329,6 +329,20 @@
 
 
                 })
+                $("#reset_boat_data").on("click",function (){
+                    $.get("{{route("home.reset_boat_data")}}", {"_token": token},function (responce){
+
+                        if(responce=="true")
+                        {
+                            genrate_notification("Bot reset successfully",'success');
+                        }
+                        else {
+                            genrate_notification("Error in data syc",'danger');
+                        }
+                    })
+
+
+                })
             })
         </script>
         <script>

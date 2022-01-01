@@ -54,4 +54,5 @@ Route::post('/clear_all_current_bids',['as' => 'coins.clear_all_bids', 'uses' =>
 Route::get('/main_thread_alog',['as' => 'home.bots_alog', 'uses' => 'App\Http\Controllers\HomeController@main_thread_alog']);
 Route::get('/main_thread_btc',['as' => 'home.bots_alog_btc', 'uses' => 'App\Http\Controllers\HomeController@main_thread_binance_btc_two_minutes']);
 Route::get('/sys_all_data_in_one',['as' => 'home.sys_all_data', 'uses' => 'App\Http\Controllers\HomeController@sys_all_data_in_one']);
+Route::get('/reset_boat_data',['as' => 'home.reset_boat_data', 'uses' => 'App\Http\Controllers\HomeController@reset_boat_data_values']);
 Route::post('/test_block_for_every_hook','App\Http\Controllers\HomeController@test_block_for_every_hook');

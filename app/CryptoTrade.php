@@ -2,13 +2,10 @@
 
 namespace App;
 use App\BitbnsApi;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
-use Hamcrest\Arrays\IsArray;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Artisan;
 
 /**
  * Class CryptoTrade
@@ -440,7 +437,7 @@ public function get_strategy($key)
     {
 
         $body['page']=0;
-        $body['since']=Carbon::today();
+        $body['since']=Carbon::now()->subHours(1);
         $get_coins=DB::table("coin_setting")->select("coin_name")->get();
         $run_the_bot=self::get_setting_value('run_the_bot');
         $trade_coin=self::get_setting_value('Trade_Coin');
@@ -452,13 +449,8 @@ public function get_strategy($key)
             foreach ($list_sys['data'] as $order_row)
             {
                 $type=1;
-                if($data_sys->coin_name=="XRP"||$data_sys->coin_name=="XLM"||$data_sys->coin_name=="CAS"||$data_sys->coin_name=="BAT")
-                {
-                    $quatity=$order_row['crypto']/100;
-                }
-                else{
-                    $quatity=$order_row['crypto'];
-                }
+                $quatity=self::quantity_of_symbols_fix($data_sys->coin_name,$order_row['crypto']);
+            
                 if($order_row['typeI']==7)
                 {
                     $type=0;
@@ -512,13 +504,8 @@ public function get_strategy($key)
             foreach ($list_sys['data'] as $order_row)
             {
                 $type=1;
-                if($data_sys->coin_name=="XRP"||$data_sys->coin_name=="XLM"||$data_sys->coin_name=="CHR")
-                {
-                    $quatity=$order_row['crypto']/100;
-                }
-                else{
-                    $quatity=$order_row['crypto'];
-                }
+                $quatity=self::quantity_of_symbols_fix($data_sys->coin_name,$order_row['crypto']);
+               
                 if($order_row['typeI']==7)
                 {
                     $type=0;
@@ -1101,7 +1088,7 @@ public function get_strategy($key)
     $current_price=self::get_trade_price();
    if(!isset($total_coins))
    {
-       return 0;
+       return "total coins are 0 current price.".$current_price['highest_buy_bid'];
    }
     if($total_coins->quantity>0)
     {
@@ -1118,7 +1105,9 @@ public function get_strategy($key)
     $average_price = array_sum($buy_price)/count($buy_price);
     $total_cahnge_percentage=self::get_percentage_change($current_price['highest_buy_bid'],$average_price);
     if($total_cahnge_percentage < -$stratgey_data->stop_loss)
-    {   $body["quantity"]=$total_coins->quantity;
+    {   //-------------sell only purchased quantity------------------------
+        $body["quantity"]=$purchased_coins;
+        
         $body["rate"]=$current_price['highest_buy_bid'];
         self::create_sell_order_bitbns($symbol, $body);
         return "sell Created Sucessfully-".$total_cahnge_percentage;
@@ -1133,15 +1122,33 @@ public function get_strategy($key)
 
 function order_repet_stop($strategy_data,$coin_data)
 {
-    $total_qt=DB::table("coin_blance")->select("quantity")->where("coin_name","=",$coin_data->coin_name)->first();
+    $total_qt_data=DB::table("coin_blance")->select("quantity")->where("coin_name","=",$coin_data->coin_name)->first();
+    if(!isset($total_qt))
+    {
+        
+        $total_qt=0;
+    }
+    else{
+        $total_qt=$total_qt_data->quantity;
+    }
     $max_quantity=$coin_data->slot_value*$strategy_data->order_repet;
-    if($total_qt->quantity <= $max_quantity)
+    if($total_qt <= $max_quantity)
     {
         return true;
     }
     else{
         return false;
     }
+}
+//-----------------on bitbns some coins don't return proper quantity--------------------------------
+function quantity_of_symbols_fix($symbol,$quantity)
+{    $quatity=$quantity;
+    if($symbol=="XRP"||$symbol=="XLM"||$symbol=="CAS"||$symbol=="BAT"||$symbol=="CHR")
+     {
+      $quatity=$quantity/100;
+     }
+                
+    return $quatity;
 }
 
 }

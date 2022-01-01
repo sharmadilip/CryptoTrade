@@ -18,6 +18,7 @@
         <div class="collapse navbar-collapse" id="navigation">
             <ul class="navbar-nav ml-auto">
                 <li class="input-group">
+                <button class="btn btn-sm btn-fill btn-primary" id="reset_boat_data">Reset Bot</button>
                     <button class="btn btn-sm btn-fill btn-primary" id="run_main_thread_bot">Run Bot</button>
                     <button class="btn btn-sm btn-fill btn-primary" id="syc_all_data_db">Sys Data</button>
                 </li>

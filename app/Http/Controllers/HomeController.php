@@ -298,7 +298,7 @@ class HomeController extends Controller
         $this->crypto_trad->sys_order_status();
         $this->crypto_trad->update_coin_balance();
         $this->crypto_trad->update_usd_to_db();
-        $this->crypto_trad->stop_loss_boat();
+        //$this->crypto_trad->stop_loss_boat();
         return "five minute cron sucess";
     }
 //-----------run in every 15 run-----------------
@@ -322,7 +322,7 @@ class HomeController extends Controller
         $this->crypto_trad->binance_price_rising_alert();
     }
 
-
+//-----------------------sys all data at one --------------------------
   function sys_all_data_in_one()
   {
       $this->crypto_trad->sys_order_book_by_coin();
@@ -333,6 +333,13 @@ class HomeController extends Controller
           unlink(storage_path('logs') . '/laravel.log');
       }
       return "true";
+  }
+  //---------------------reset boat data----------
+  function reset_boat_data_values()
+  {    $symbol=$this->crypto_trad->get_setting_value("trade_coin");
+       $stratgey_key=$this->crypto_trad->get_setting_value('strategy_value');
+       DB::table("order_table")->where(array('coin'=>$symbol,"strategy"=>$stratgey_key))->delete();
+       return "true";
   }
 
   function set_stratgey_based_on_data_change()
@@ -386,19 +393,27 @@ class HomeController extends Controller
    $symbol=$this->crypto_trad->get_setting_value('Trade_Coin');
    $stratgey_key=$this->crypto_trad->get_setting_value('strategy_value');
 
-   $total_buy_data=DB::table("order_table")->select("quantity","price")->where(array("coin"=>$symbol,"strategy"=>$stratgey_key,"order_status"=>2,"order_type"=>0,"order_coins_status"=>1))->where('created_at','>',$from_data)->get();
+   $total_buy_data=DB::table("order_table")->select("quantity","price")->where(array("coin"=>$symbol,"strategy"=>$stratgey_key,"order_status"=>2,"order_type"=>0))->get();
    $total_buy_amount=0; 
+   $current_price=$this->crypto_trad->get_trade_price();
+   $total_buy_coin=0;
    foreach($total_buy_data as $buy_data)
-   {
+   {     $total_buy_coin=$total_buy_coin+$buy_data->quantity;
        $amout_buy=$buy_data->quantity*$buy_data->price;
        $total_buy_amount=$total_buy_amount+$amout_buy;
    }
-   $total_sell_data=DB::table("order_table")->select("quantity","price")->where(array("coin"=>$symbol,"strategy"=>$stratgey_key,"order_status"=>2,"order_type"=>1))->where('created_at','>',$from_data)->get();
-   $total_sell_amount=0; 
+   $total_sell_data=DB::table("order_table")->select("quantity","price")->where(array("coin"=>$symbol,"strategy"=>$stratgey_key,"order_status"=>2,"order_type"=>1))->get();
+   $total_sell_amount=0;
+   $total_sell_coin=0;
    foreach($total_sell_data as $sell_data)
-   {
+   {   $total_sell_coin=$total_sell_coin+$sell_data->quantity;
        $amout=$sell_data->quantity*$sell_data->price;
        $total_sell_amount=$total_sell_amount+$amout;
+   }
+   if($total_buy_coin > $total_sell_coin)
+   {
+       $remaning_coin=$total_buy_coin-$total_sell_coin;
+       $total_sell_amount=$total_sell_amount+($remaning_coin*$current_price['highest_buy_bid']);
    }
    $total_return=round(($total_sell_amount-$total_buy_amount),2);
    return $total_return;
