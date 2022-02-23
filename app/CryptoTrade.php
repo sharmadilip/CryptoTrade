@@ -1078,7 +1078,7 @@ public function get_strategy($key)
   //--------------stop loss if boat avg price is lover then price define in stratgey------------
   function stop_loss_boat()
   {
-    $symbol=self::get_setting_value('Trade_Coin');
+    $symbol=self::get_setting_value('trade_coin');
     $stratgey_key=self::get_setting_value('strategy_value');
     $stratgey_data=self::get_strategy($stratgey_key);
     $get_data=DB::table("order_table")->select("*")->where(array("order_type"=>0,"strategy"=>$stratgey_key,'coin'=>$symbol))->orderBy("id","desc")->get();
@@ -1102,17 +1102,27 @@ public function get_strategy($key)
          break;
      }
     }
-    $average_price = array_sum($buy_price)/count($buy_price);
+    $divided_by=count($buy_price);
+    if($divided_by==0)
+    {
+        $divided_by=1;
+    }
+    $average_price = array_sum($buy_price)/$divided_by;
+    if($average_price==0)
+    {
+        return "avg Price is".$average_price;
+    }
     $total_cahnge_percentage=self::get_percentage_change($current_price['highest_buy_bid'],$average_price);
     if($total_cahnge_percentage < -$stratgey_data->stop_loss)
     {   //-------------sell only purchased quantity------------------------
         $body["quantity"]=$purchased_coins;
         
         $body["rate"]=$current_price['highest_buy_bid'];
-        self::create_sell_order_bitbns($symbol, $body);
+       // self::create_sell_order_bitbns($symbol, $body);
         return "sell Created Sucessfully-".$total_cahnge_percentage;
     }
-    return "Avg Price=".$average_price." CurrentPrice=".$current_price['highest_buy_bid'];
+    return "Avg Price test=".$average_price." CurrentPrice=".$current_price['highest_buy_bid']." percentage change.".$total_cahnge_percentage;
+  // return $order_data;
     
   }
   return "Coins Not avalible";

@@ -298,7 +298,7 @@ class HomeController extends Controller
         $this->crypto_trad->sys_order_status();
         $this->crypto_trad->update_coin_balance();
         $this->crypto_trad->update_usd_to_db();
-        //$this->crypto_trad->stop_loss_boat();
+        $this->crypto_trad->stop_loss_boat();
         return "five minute cron sucess";
     }
 //-----------run in every 15 run-----------------
